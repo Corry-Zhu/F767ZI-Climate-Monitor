@@ -46,7 +46,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+static volatile _Bool tick_500ms = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,7 +57,23 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/**
+ * @brief This function handles System tick timer.
+ */
+void SysTick_Handler(void)
+{
+	/* USER CODE BEGIN SysTick_IRQn 0 */
 
+	/* USER CODE END SysTick_IRQn 0 */
+	HAL_IncTick();
+
+	if (HAL_GetTick() % 500 == 0) {
+		tick_500ms = 1;
+	}
+	/* USER CODE BEGIN SysTick_IRQn 1 */
+
+	/* USER CODE END SysTick_IRQn 1 */
+}
 /* USER CODE END 0 */
 
 /**
@@ -98,6 +114,10 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
+		if(tick_500ms) {
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+			tick_500ms = 0;
+		}
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
