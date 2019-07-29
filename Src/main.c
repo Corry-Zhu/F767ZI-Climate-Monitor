@@ -23,11 +23,10 @@
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
-#include "si7021.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "si7021.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +48,8 @@
 
 /* USER CODE BEGIN PV */
 static volatile _Bool tick_500ms = 0;
+
+Adafruit_Si7021 sensor;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -112,6 +113,11 @@ int main(void)
 	MX_I2C1_Init();
 	MX_UART4_Init();
 	/* USER CODE BEGIN 2 */
+	Adafruit_Si7021_Init(&sensor, &hi2c1);
+	if (Adafruit_Si7021_Begin(&sensor) != 1) {
+		Error_Handler();
+	}
+
 	uint8_t obuf[] = "Hello World\r\n";
 
 	/* USER CODE END 2 */

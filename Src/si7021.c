@@ -51,8 +51,10 @@ static void _readRevision(Adafruit_Si7021 *si7021) {
 	switch (firmvers) {
 	case SI7021_REV_1:
 		si7021->_revision = 1;
+		break;
 	case SI7021_REV_2:
 		si7021->_revision = 2;
+		break;
 	default:
 		si7021->_revision = 0;
 	}

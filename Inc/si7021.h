@@ -51,8 +51,8 @@
 #define SI7021_ID2_CMD                   0xFCC9U /**< Read Electronic ID 2nd Byte */
 #define SI7021_FIRMVERS_CMD              0x84B8U /**< Read Firmware Revision */
 
-#define SI7021_REV_1					0xFF  /**< Sensor revision 1 */
-#define SI7021_REV_2					0x20  /**< Sensor revision 2 */
+#define SI7021_REV_1					0xFFU  /**< Sensor revision 1 */
+#define SI7021_REV_2					0x20U  /**< Sensor revision 2 */
 
 /** An enum to represent sensor types **/
 typedef enum {
@@ -69,7 +69,7 @@ typedef struct __Adafruit_Si7021 {
 	uint32_t sernum_b; /**< Serialnum B */
 	si_sensorType _model;
 	uint8_t _revision;
-	int8_t  _i2caddr;
+	uint8_t  _i2caddr;
 } Adafruit_Si7021;
 
 _Bool Adafruit_Si7021_Begin(Adafruit_Si7021 *si7021);
