@@ -74,7 +74,7 @@ typedef struct __Adafruit_Si7021 {
 
 _Bool Adafruit_Si7021_Begin(Adafruit_Si7021 *si7021);
 float readHumidity();
-float readTemperature();
+float Adafruit_Si7021_ReadTemperature(Adafruit_Si7021 *si7021);
 si_sensorType getModel();
 uint8_t getRevision();
 void Adafruit_Si7021_Init(Adafruit_Si7021 *si7021, I2C_HandleTypeDef *hi2c);

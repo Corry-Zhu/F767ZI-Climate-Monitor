@@ -26,6 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 #include "si7021.h"
 /* USER CODE END Includes */
 
@@ -50,6 +51,8 @@
 static volatile _Bool tick_500ms = 0;
 
 Adafruit_Si7021 sensor;
+float temp = 0.0;
+uint8_t obuf[32];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -118,7 +121,6 @@ int main(void)
 		Error_Handler();
 	}
 
-	uint8_t obuf[] = "Hello World\r\n";
 
 	/* USER CODE END 2 */
 
@@ -132,15 +134,30 @@ int main(void)
 		UART4->TDR = 0x48;
 		while(!(UART4->ISR & UART_FLAG_TC)) {}
 		HAL_Delay(500);
-		*/
+		 */
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 
+		temp = Adafruit_Si7021_ReadTemperature(&sensor);
+		sprintf((char *)obuf, "Temperature: %.2f C\r\n", temp);
+
+		if (HAL_UART_Transmit(&huart4, obuf, (uint16_t)sizeof(obuf), HAL_MAX_DELAY) != HAL_OK) {
+			Error_Handler();
+		}
+		HAL_Delay(100);
+
+		/*
 		if(tick_500ms) {
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+
+			temp = Adafruit_Si7021_ReadTemperature(&sensor);
+			sprintf((char *)obuf, "Temperature: %.2f C\r\n", temp);
+
 			if (HAL_UART_Transmit(&huart4, obuf, (uint16_t)sizeof(obuf), HAL_MAX_DELAY) != HAL_OK) {
 				Error_Handler();
 			}
 			tick_500ms = 0;
 		}
+		*/
 
 		/* USER CODE END WHILE */
 
