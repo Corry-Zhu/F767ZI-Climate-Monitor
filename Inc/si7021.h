@@ -77,6 +77,7 @@ float readHumidity();
 float readTemperature();
 si_sensorType getModel();
 uint8_t getRevision();
+void Adafruit_Si7021_Init(Adafruit_Si7021 *si7021, I2C_HandleTypeDef *hi2c);
 void Adafruit_Si7021_ReadSerialNumber();
 void Adafruit_Si7021_Reset(Adafruit_Si7021 *si7021);
 
