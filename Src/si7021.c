@@ -37,10 +37,26 @@ static void _writeRegister8(uint8_t reg, uint8_t value) {
 	return;
 }
 
-static void _readRevision() {
-	return;
-}
+static void _readRevision(Adafruit_Si7021 *si7021) {
+	uint8_t cmd[] = {SI7021_FIRMVERS_CMD >> 8, SI7021_FIRMVERS_CMD & 0xFF};
+	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 2, _TRANSACTION_TIMEOUT) != HAL_OK) {
+		Error_Handler(); // TODO: Handle gracefully
+	}
 
+	uint8_t firmvers;
+	if (HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, &firmvers, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
+		Error_Handler(); // TODO: Handle gracefully
+	}
+
+	switch (firmvers) {
+	case SI7021_REV_1:
+		si7021->_revision = 1;
+	case SI7021_REV_2:
+		si7021->_revision = 2;
+	default:
+		si7021->_revision = 0;
+	}
+}
 
 /*!
  *  @brief  Instantiates a new Adafruit_Si7021 class
@@ -66,8 +82,8 @@ _Bool Adafruit_Si7021_Begin(Adafruit_Si7021 *si7021) {
 	if (_readRegister8(si7021, SI7021_READRHT_REG_CMD) != 0x3AU)
 		return 0;
 
-	Adafruit_Si7021_ReadSerialNumber();
-	_readRevision();
+	Adafruit_Si7021_ReadSerialNumber(si7021);
+	_readRevision(si7021);
 
 	return 1;
 }
@@ -89,7 +105,7 @@ void Adafruit_Si7021_Reset(Adafruit_Si7021 *si7021) {
 void Adafruit_Si7021_ReadSerialNumber(Adafruit_Si7021 *si7021) {
 	uint8_t cmd[] = {SI7021_ID1_CMD >> 8, SI7021_ID1_CMD & 0xFF};
 	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 2, _TRANSACTION_TIMEOUT) != HAL_OK) {
-		Error_Handler();
+		Error_Handler(); // TODO: Handle gracefully
 	}
 
 	uint8_t sernum[8];
@@ -102,7 +118,7 @@ void Adafruit_Si7021_ReadSerialNumber(Adafruit_Si7021 *si7021) {
 	cmd[0] = SI7021_ID2_CMD >> 8;
 	cmd[1] = SI7021_ID2_CMD & 0xFF;
 	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 2, _TRANSACTION_TIMEOUT) != HAL_OK) {
-		Error_Handler();
+		Error_Handler(); // TODO: Handle gracefully
 	}
 
 	if (HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, sernum, 8, _TRANSACTION_TIMEOUT) != HAL_OK) {

@@ -51,7 +51,7 @@
 #define SI7021_ID2_CMD                   0xFCC9U /**< Read Electronic ID 2nd Byte */
 #define SI7021_FIRMVERS_CMD              0x84B8U /**< Read Firmware Revision */
 
-#define SI7021_REV_1					0xff  /**< Sensor revision 1 */
+#define SI7021_REV_1					0xFF  /**< Sensor revision 1 */
 #define SI7021_REV_2					0x20  /**< Sensor revision 2 */
 
 /** An enum to represent sensor types **/
