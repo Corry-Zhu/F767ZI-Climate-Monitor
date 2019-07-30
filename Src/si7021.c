@@ -293,6 +293,15 @@ Si_SensorTypeDef Si7021_GetModel(Si7021_TypeDef *si7021) {
 }
 
 /*!
+ *  @brief Provides the caller with the firmware revision of the sensor
+ *  @param *si7021 Pointer to the handle of the target device
+ *  @return Firmware revision as uint8_t
+ */
+uint8_t Si7021_GetRevision(Si7021_TypeDef *si7021) {
+	return si7021->_revision;
+}
+
+/*!
  *  @brief  Obtains heater status from usr reg and heater level from heater reg
  *  @param *si7021 Pointer to the handle of the target device
  *  @return status Heater status as uint8_t as described below
@@ -343,3 +352,4 @@ void Si7021_Reset(Si7021_TypeDef *si7021) {
 	HAL_Delay(50);
 }
 
+/*! End of file si7021.c **/

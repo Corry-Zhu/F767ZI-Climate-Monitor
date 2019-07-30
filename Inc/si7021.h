@@ -88,8 +88,8 @@ float Si7021_ReadHumidity(Si7021_TypeDef *si7021);
 float Si7021_ReadPrevTemperature(Si7021_TypeDef *si7021);
 float Si7021_ReadTemperature(Si7021_TypeDef *si7021);
 Si_SensorTypeDef Si7021_GetModel(Si7021_TypeDef *si7021);
+uint8_t Si7021_GetRevision(Si7021_TypeDef *si7021);
 uint8_t Si7021_HeaterStatus(Si7021_TypeDef *si7021);
-uint8_t getRevision();
 void Si7021_Init(Si7021_TypeDef *si7021, I2C_HandleTypeDef *hi2c);
 void Si7021_Reset(Si7021_TypeDef *si7021);
 
