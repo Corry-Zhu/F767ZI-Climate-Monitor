@@ -160,7 +160,7 @@ float Adafruit_Si7021_ReadHumidity(Adafruit_Si7021 *si7021) {
 	}
 
 	uint8_t resp[3];
-	HAL_StatusTypeDef rxStatus = HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, resp, 3, HAL_MAX_DELAY);
+	HAL_StatusTypeDef rxStatus = HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, resp, 3, _TRANSACTION_TIMEOUT);
 	if(rxStatus != HAL_OK) {
 		return NAN; // TODO: Handle gracefully
 	}
@@ -186,7 +186,7 @@ float Adafruit_Si7021_ReadTemperature(Adafruit_Si7021 *si7021) {
 	}
 
 	uint8_t resp[3];
-	HAL_StatusTypeDef rxStatus = HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, resp, 3, HAL_MAX_DELAY);
+	HAL_StatusTypeDef rxStatus = HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, resp, 3, _TRANSACTION_TIMEOUT);
 	if(rxStatus != HAL_OK) {
 		return NAN; // TODO: Handle gracefully
 	}
