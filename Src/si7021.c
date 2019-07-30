@@ -21,12 +21,12 @@ static uint8_t _readRegister8(Adafruit_Si7021 *si7021, uint8_t reg) {
 		Error_Handler(); // TODO: Handle gracefully
 	}
 
-	uint8_t value;
-	if (HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, &value, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
+	uint8_t val[] = {0};
+	if (HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, val, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
 		Error_Handler(); // TODO: Handle gracefully
 	}
 
-	return value;
+	return val[0];
 }
 
 static uint16_t _readRegister16(Adafruit_Si7021 *si7021, uint8_t reg) {
@@ -45,13 +45,8 @@ static uint16_t _readRegister16(Adafruit_Si7021 *si7021, uint8_t reg) {
 }
 
 static void _writeRegister8(Adafruit_Si7021 *si7021, uint8_t reg, uint8_t value) {
-	uint8_t cmd[] = {reg};
-	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
-		Error_Handler(); // TODO: Handle gracefully
-	}
-
-	cmd[0] = value;
-	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
+	uint8_t cmd[] = {reg, value};
+	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 2, _TRANSACTION_TIMEOUT) != HAL_OK) {
 		Error_Handler(); // TODO: Handle gracefully
 	}
 }
@@ -91,6 +86,7 @@ void Adafruit_Si7021_Init(Adafruit_Si7021 *si7021, I2C_HandleTypeDef *hi2c) {
 	si7021->sernum_b = 0; /**< Serialnum B */
 	si7021->_model = SI_7021;
 	si7021->_revision = 0;
+	si7021->heater = 0;
 }
 
 
@@ -109,7 +105,7 @@ _Bool Adafruit_Si7021_Begin(Adafruit_Si7021 *si7021) {
 	return 1;
 }
 
-_Bool AdafruitSi7021_HeaterOn(Adafruit_Si7021 *si7021, uint8_t level) {
+_Bool Adafruit_Si7021_HeaterOn(Adafruit_Si7021 *si7021, uint8_t level) {
 	uint8_t usr_val = _readRegister8(si7021, SI7021_READRHT_REG_CMD);
 	usr_val |= SI7021_HTRE_MASK;
 
@@ -117,13 +113,42 @@ _Bool AdafruitSi7021_HeaterOn(Adafruit_Si7021 *si7021, uint8_t level) {
 	if (_readRegister8(si7021, SI7021_READRHT_REG_CMD) != usr_val) {
 		return 0;
 	}
-	level = level & SI7021_HEATLVL_MASK; /** [7:4] are reserved bits in heater register **/
+	level &= SI7021_HEATLVL_MASK; /** [7:4] are reserved bits in heater register **/
 	_writeRegister8(si7021, SI7021_WRITEHEATER_REG_CMD, level);
 	if (_readRegister8(si7021, SI7021_READHEATER_REG_CMD) != level) {
 		return 0;
 	}
 
+	si7021->heater = 1;
 	return 1;
+}
+
+_Bool Adafruit_Si7021_HeaterOff(Adafruit_Si7021 *si7021) {
+	uint8_t usr_val = _readRegister8(si7021, SI7021_READRHT_REG_CMD);
+	usr_val &= ~SI7021_HTRE_MASK;
+
+	_writeRegister8(si7021, SI7021_WRITERHT_REG_CMD, usr_val);
+	if (_readRegister8(si7021, SI7021_READRHT_REG_CMD) != usr_val) {
+		return 0;
+	}
+
+	si7021->heater = 0;
+	return 1;
+}
+
+/*!
+ *  @brief  Obtains heater enable status from usr reg and heater level from heater reg
+ *  @return Returns uint8_t [7:0] where bit 4 is enable status and [3:0] is heater level
+ */
+uint8_t Adafruit_Si7021_HeaterStatus(Adafruit_Si7021 *si7021) {
+	uint8_t status = 0x00;
+	if (_readRegister8(si7021, SI7021_READRHT_REG_CMD) & SI7021_HTRE_MASK) {
+		status |= (1U << 4); /** heater enabled **/
+	}
+
+	status |= (_readRegister8(si7021, SI7021_READHEATER_REG_CMD) & SI7021_HEATLVL_MASK);
+
+	return status;
 }
 
 /*!

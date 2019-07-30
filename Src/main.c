@@ -37,7 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define DEBOUNCE_MS			(50U)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -49,10 +49,14 @@
 
 /* USER CODE BEGIN PV */
 static volatile _Bool tick_500ms = 0;
+static volatile _Bool buttonPressed = 0;
+static volatile uint32_t buttonStartTime = 0;
+static volatile uint32_t buttonStopTime = 0;
 
 Adafruit_Si7021 sensor;
 uint8_t obufH[32];
 uint8_t obufT[32];
+uint8_t obufS[32];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -133,6 +137,7 @@ int main(void)
 
 			float hum = Adafruit_Si7021_ReadHumidity(&sensor);
 			float temp = Adafruit_Si7021_ReadPrevTemperature(&sensor);
+			uint8_t heat = Adafruit_Si7021_HeaterStatus(&sensor);
 
 			sprintf((char *)obufH, "Humidity: %.1f%%\r\n", hum);
 			if (HAL_UART_Transmit(&huart4, obufH, (uint16_t)sizeof(obufH), HAL_MAX_DELAY) != HAL_OK) {
@@ -141,6 +146,11 @@ int main(void)
 
 			sprintf((char *)obufT, "PrevTemperature: %.1f C\r\n", temp);
 			if (HAL_UART_Transmit(&huart4, obufT, (uint16_t)sizeof(obufT), HAL_MAX_DELAY) != HAL_OK) {
+				Error_Handler();
+			}
+
+			sprintf((char *)obufS, "Heater: %d\r\n\n", heat);
+			if (HAL_UART_Transmit(&huart4, obufS, (uint16_t)sizeof(obufS), HAL_MAX_DELAY) != HAL_OK) {
 				Error_Handler();
 			}
 
@@ -213,7 +223,31 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == GPIO_PIN_13) {
+		if (HAL_GPIO_ReadPin(GPIOC, GPIO_Pin) == GPIO_PIN_SET) {
+			buttonStartTime = HAL_GetTick();
+		}
+		else {
+			buttonStopTime = HAL_GetTick();
+			if (buttonStopTime - buttonStartTime >= DEBOUNCE_MS) {
+				if (sensor.heater) {
+					if (Adafruit_Si7021_HeaterOff(&sensor) != 1) {
+						Error_Handler();
+					}
+					GPIOB->BSRR = GPIO_PIN_7 << 16;
+				}
+				else {
+					if (Adafruit_Si7021_HeaterOn(&sensor, 8) != 1) {
+						Error_Handler();
+					}
+					GPIOB->BSRR = GPIO_PIN_7;
+				}
+			}
+		}
+	}
+}
 /* USER CODE END 4 */
 
 /**

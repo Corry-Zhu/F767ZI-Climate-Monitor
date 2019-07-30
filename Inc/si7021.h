@@ -57,6 +57,7 @@
 #define SI7021_HTRE_POS			 		(2U) /** D2 in user reg toggles heater -- 1:enable, 0:disable **/
 #define SI7021_HTRE_MASK				(0x1U << SI7021_HTRE_POS)
 #define SI7021_HEATLVL_MASK				(0x0FU) /** heater register [3:0] control heat level **/
+#define SI7021_RHT_RSVD_MASK			(0x3AU) /** mask reserved bits in user register 1 **/
 
 /** An enum to represent sensor types **/
 typedef enum {
@@ -74,14 +75,17 @@ typedef struct __Adafruit_Si7021 {
 	Si_SensorTypeDef _model;
 	uint8_t _revision;
 	uint8_t  _i2caddr;
+	_Bool heater;
 } Adafruit_Si7021;
 
 _Bool Adafruit_Si7021_Begin(Adafruit_Si7021 *si7021);
-_Bool AdafruitSi7021_HeaterOn(Adafruit_Si7021 *si7021, uint8_t level);
+_Bool Adafruit_Si7021_HeaterOff(Adafruit_Si7021 *si7021);
+_Bool Adafruit_Si7021_HeaterOn(Adafruit_Si7021 *si7021, uint8_t level);
 float Adafruit_Si7021_ReadHumidity(Adafruit_Si7021 *si7021);
 float Adafruit_Si7021_ReadTemperature(Adafruit_Si7021 *si7021);
 float Adafruit_Si7021_ReadPrevTemperature(Adafruit_Si7021 *si7021);
 Si_SensorTypeDef Adafruit_Si7021_GetModel(Adafruit_Si7021 *si7021);
+uint8_t Adafruit_Si7021_HeaterStatus(Adafruit_Si7021 *si7021);
 uint8_t getRevision();
 void Adafruit_Si7021_Init(Adafruit_Si7021 *si7021, I2C_HandleTypeDef *hi2c);
 void Adafruit_Si7021_ReadSerialNumber(Adafruit_Si7021 *si7021);
