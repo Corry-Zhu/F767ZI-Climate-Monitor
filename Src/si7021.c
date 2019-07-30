@@ -1,15 +1,15 @@
 /*!
- *  @file si7021.c
- *  @author Paul Czeresko <p.czeresko.3@gmail.com>
- *	@date 25 July 2019
+ * @file si7021.c
+ * @author Paul Czeresko <p.czeresko.3@gmail.com>
+ * @date 25 July 2019
  *
- *	@section Description
+ * @section Description
  *
- *  This is a library for the Silicon Labs Si7021 I2C temperature/humidity
- *  sensor. This code has been tested using the Adafruit Si7021 breakout board.
+ * This is a library for the Silicon Labs Si7021 I2C temperature/humidity
+ * sensor. This code has been tested using the Adafruit Si7021 breakout board.
  *
- *  The fundamental operations are based on the Arduino library provided by
- *  Adafruit, but all functions are set to work on top of the STM32F7 HAL.
+ * The fundamental operations are based on the Arduino library provided by
+ * Adafruit, but all functions are set to work on top of the STM32F7 HAL.
  */
 
 #include "si7021.h"
@@ -93,8 +93,8 @@ static void _readRevision(Si7021_TypeDef *si7021) {
 }
 
 /*!
- *  @brief Reads serial number and updates properties of target structure
- *  @param *si7021 Pointer to the handle of the target device
+ * @brief Reads serial number and updates properties of target structure
+ * @param *si7021 Pointer to the handle of the target device
  */
 void _readSerialNumber(Si7021_TypeDef *si7021) {
 	uint8_t cmd[] = {SI7021_ID1_CMD >> 8, SI7021_ID1_CMD & 0xFF};
@@ -145,9 +145,9 @@ void _readSerialNumber(Si7021_TypeDef *si7021) {
  */
 
 /*!
- *  @brief Sets up the HW by reseting It, reading serial number and reading revision
- *  @param *si7021 Pointer to the handle of the target device
- *  @return Returns true if set up is successful
+ * @brief Sets up the HW by reseting It, reading serial number and reading revision
+ * @param *si7021 Pointer to the handle of the target device
+ * @return Returns true if set up is successful
  */
 _Bool Si7021_Begin(Si7021_TypeDef *si7021) {
 	Si7021_Reset(si7021);
@@ -161,10 +161,10 @@ _Bool Si7021_Begin(Si7021_TypeDef *si7021) {
 }
 
 /*!
- *  @brief Enables on-chip heater to specified level
- *  @param *si7021 Pointer to the handle of the target device
- *  @param level Heater level -- 0-15, lowest-highest. [7:4] don't care.
- *  @return True if successful, otherwise false
+ * @brief Enables on-chip heater to specified level
+ * @param *si7021 Pointer to the handle of the target device
+ * @param level Heater level -- 0-15, lowest-highest. [7:4] don't care.
+ * @return True if successful, otherwise false
  */
 _Bool Si7021_HeaterOn(Si7021_TypeDef *si7021, uint8_t level) {
 	uint8_t usr_val = _readRegister8(si7021, SI7021_READRHT_REG_CMD);
@@ -185,9 +185,9 @@ _Bool Si7021_HeaterOn(Si7021_TypeDef *si7021, uint8_t level) {
 }
 
 /*!
- *  @brief Disables on-chip heater
- *  @param *si7021 Pointer to the handle of the target device
- *  @return True if successful, otherwise false
+ * @brief Disables on-chip heater
+ * @param *si7021 Pointer to the handle of the target device
+ * @return True if successful, otherwise false
  */
 _Bool Si7021_HeaterOff(Si7021_TypeDef *si7021) {
 	uint8_t usr_val = _readRegister8(si7021, SI7021_READRHT_REG_CMD);
@@ -203,9 +203,40 @@ _Bool Si7021_HeaterOff(Si7021_TypeDef *si7021) {
 }
 
 /*!
- *  @brief Reads the humidity value from Si7021 (Master hold)
- *  @param *si7021 Pointer to the handle of the target device
- *  @return humidity Humidity as float value or NAN if I2C link is unsuccessful
+ * @brief Configures user register to convert at the requested resolution
+ * @param *si7021 Pointer to the handle of the target device
+ * @param res Resolution typedef (see below)
+ * @return True if successful, false if unsuccessful register write
+ *
+ *  ___________________________________________
+ * |              |          |   Resolution    |
+ * |______________|__________|_________________|
+ * |     Enum     |  D[7,0]  |  RH   |  Temp   |
+ * |______________|__________|_______|_________|
+ * |  RES_H12T14  |   0 0    |  12b  |   14b   |
+ * |  RES_H8T12   |   0 1    |   8b  |   12b   |
+ * |  RES_H10T13  |   1 0    |  10b  |   13b   |
+ * |  RES_H11T11  |   1 1    |  11b  |   11b   |
+ * |______________|__________|_______|_________|
+ */
+_Bool Si7021_SetResolution(Si7021_TypeDef *si7021, Si_ResolutionTypeDef res) {
+	uint8_t usr_val = _readRegister8(si7021, SI7021_READRHT_REG_CMD);
+	uint8_t resolution = ((res << 6) | res) & SI7021_RHT_RES_MASK; /**< move MSB to 7 and blank [6:1] **/
+	usr_val = resolution | (usr_val & ~SI7021_RHT_RES_MASK);
+
+	_writeRegister8(si7021, SI7021_WRITERHT_REG_CMD, usr_val);
+	if (_readRegister8(si7021, SI7021_READRHT_REG_CMD) != usr_val) {
+		return 0;
+	}
+	si7021->_res = res;
+
+	return 1;
+}
+
+/*!
+ * @brief Reads the humidity value from Si7021 (Master hold)
+ * @param *si7021 Pointer to the handle of the target device
+ * @return humidity Humidity as float value or NAN if I2C link is unsuccessful
  */
 float Si7021_ReadHumidity(Si7021_TypeDef *si7021) {
 	uint8_t cmd[] = {SI7021_MEASRH_HOLD_CMD};
@@ -230,12 +261,12 @@ float Si7021_ReadHumidity(Si7021_TypeDef *si7021) {
 }
 
 /*!
- *  @brief Provides access to temperature value from previous humidity conversion
- *  @param *si7021 Pointer to the handle of the target device
- *  @return temperature Temperature as float value or NAN if I2C link is unsuccessful
+ * @brief Provides access to temperature value from previous humidity conversion
+ * @param *si7021 Pointer to the handle of the target device
+ * @return temperature Temperature as float value or NAN if I2C link is unsuccessful
  *
- *  This function allows access to temperature data from the previous conversion
- *  without having to resample.
+ * This function allows access to temperature data from the previous conversion
+ * without having to resample.
  */
 float Si7021_ReadPrevTemperature(Si7021_TypeDef *si7021) {
 	uint8_t cmd[] = {SI7021_READPREVTEMP_CMD};
@@ -258,9 +289,9 @@ float Si7021_ReadPrevTemperature(Si7021_TypeDef *si7021) {
 }
 
 /*!
- *  @brief Reads the humidity value from Si7021 (Master hold)
- *  @param *si7021 Pointer to the handle of the target device
- *  @return temperature Temperature as float value or NAN if I2C link is unsuccessful
+ * @brief Reads the humidity value from Si7021 (Master hold)
+ * @param *si7021 Pointer to the handle of the target device
+ * @return temperature Temperature as float value or NAN if I2C link is unsuccessful
  */
 float Si7021_ReadTemperature(Si7021_TypeDef *si7021) {
 	uint8_t cmd[] = {SI7021_MEASTEMP_HOLD_CMD};
@@ -284,34 +315,43 @@ float Si7021_ReadTemperature(Si7021_TypeDef *si7021) {
 }
 
 /*!
- *  @brief Provides the caller with the model of the sensor
- *  @param *si7021 Pointer to the handle of the target device
- *  @return Model number
+ * @brief Provides the caller with the model of the sensor
+ * @param *si7021 Pointer to the handle of the target device
+ * @return Model typedef
  */
 Si_SensorTypeDef Si7021_GetModel(Si7021_TypeDef *si7021) {
 	return si7021->_model;
 }
 
 /*!
- *  @brief Provides the caller with the firmware revision of the sensor
- *  @param *si7021 Pointer to the handle of the target device
- *  @return Firmware revision as uint8_t
+ * @brief Provides the caller with the conversion resolution configuration
+ * @param *si7021 Pointer to the handle of the target device
+ * @return Resolution typedef
+ */
+Si_ResolutionTypeDef Si7021_GetResolution(Si7021_TypeDef *si7021) {
+	return si7021->_res;
+}
+
+/*!
+ * @brief Provides the caller with the firmware revision of the sensor
+ * @param *si7021 Pointer to the handle of the target device
+ * @return Firmware revision as uint8_t
  */
 uint8_t Si7021_GetRevision(Si7021_TypeDef *si7021) {
 	return si7021->_revision;
 }
 
 /*!
- *  @brief  Obtains heater status from usr reg and heater level from heater reg
- *  @param *si7021 Pointer to the handle of the target device
- *  @return status Heater status as uint8_t as described below
+ * @brief  Obtains heater status from usr reg and heater level from heater reg
+ * @param *si7021 Pointer to the handle of the target device
+ * @return status Heater status as uint8_t as described below
  *
- *  status bit 4 is enable status -- 0:off, 1:on
- *  status bits [3:0] represent heater level 0-15, lowest-highest
+ * status bit 4 is enable status -- 0:off, 1:on
+ * status bits [3:0] represent heater level 0-15, lowest-highest
  *
- *  @example
- *  Enable/disable status = status >> 4
- *  Heater level = status & 0x0F
+ * @example
+ * Enable/disable status = status >> 4
+ * Heater level = status & 0x0F
  */
 uint8_t Si7021_HeaterStatus(Si7021_TypeDef *si7021) {
 	uint8_t status = 0x00;
@@ -325,13 +365,14 @@ uint8_t Si7021_HeaterStatus(Si7021_TypeDef *si7021) {
 }
 
 /*!
- *  @brief Instantiates a new Si7021_TypeDef struct
- *  @param *si7021 Pointer to the handle of the target device
- *  @param *hi2c Pointer to handle of I2C channel
+ * @brief Instantiates a new Si7021_TypeDef struct
+ * @param *si7021 Pointer to the handle of the target device
+ * @param *hi2c Pointer to handle of I2C channel
  */
 void Si7021_Init(Si7021_TypeDef *si7021, I2C_HandleTypeDef *hi2c) {
 	si7021->heater = 0;
 	si7021->_hi2c = *hi2c;
+	si7021->_res = RES_H12T14; /**< default **/
 	si7021->_model = SI_7021;
 	si7021->_revision = 0;
 	si7021->_i2caddr = SI7021_DEFAULT_ADDRESS << 1; /**< 7b address as MSB **/
@@ -341,8 +382,8 @@ void Si7021_Init(Si7021_TypeDef *si7021, I2C_HandleTypeDef *hi2c) {
 }
 
 /*!
- *  @brief Sends the reset command to Si7021
- *  @param *si7021 Pointer to the handle of the target device
+ * @brief Sends the reset command to Si7021
+ * @param *si7021 Pointer to the handle of the target device
  */
 void Si7021_Reset(Si7021_TypeDef *si7021) {
 	uint8_t cmd = SI7021_RESET_CMD;

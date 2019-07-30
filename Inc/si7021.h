@@ -1,15 +1,15 @@
 /*!
- *  @file si7021.h
- *  @author Paul Czeresko <p.czeresko.3@gmail.com>
- *	@date 25 July 2019
+ * @file si7021.h
+ * @author Paul Czeresko <p.czeresko.3@gmail.com>
+ * @date 25 July 2019
  *
- *	@section Description
+ * @section Description
  *
- *  This is a library for the Silicon Labs Si7021 I2C temperature/humidity
- *  sensor. This code has been tested using the Adafruit Si7021 breakout board.
+ * This is a library for the Silicon Labs Si7021 I2C temperature/humidity
+ * sensor. This code has been tested using the Adafruit Si7021 breakout board.
  *
- *  The fundamental operations are based on the Arduino library provided by
- *  Adafruit, but all functions are set to work on top of the STM32F7 HAL.
+ * The fundamental operations are based on the Arduino library provided by
+ * Adafruit, but all functions are set to work on top of the STM32F7 HAL.
  */
 
 #ifndef SI7021_H_
@@ -19,12 +19,12 @@
 #include "stm32f7xx_hal.h"
 
 /*!
- *  I2C Address
+ * I2C Address
  */
 #define SI7021_DEFAULT_ADDRESS	0x40
 
 /*!
- *  I2C Commands
+ * I2C Commands
  */
 #define SI7021_MEASRH_HOLD_CMD           0xE5U /**< Measure Relative Humidity, Hold Master Mode */
 #define SI7021_MEASRH_NOHOLD_CMD         0xF5U /**< Measure Relative Humidity, No Hold Master Mode */
@@ -53,6 +53,7 @@
 #define SI7021_HTRE_MASK				(0x1U << SI7021_HTRE_POS)
 #define SI7021_HEATLVL_MASK				(0x0FU) /** heater register [3:0] control heat level **/
 #define SI7021_RHT_RSVD_MASK			(0x3AU) /** mask reserved bits in user register 1 **/
+#define SI7021_RHT_RES_MASK				(0x81U) /** mask reserved bits in user register 1 **/
 
 /*!
  * @typedef Si_SensorTypeDef refers to enum of sensor types
@@ -66,11 +67,34 @@ typedef enum {
 } Si_SensorTypeDef;
 
 /*!
+ * @typedef Si_ResolutionTypeDef refers to enum of ADC resolutions
+ *
+ * Bits 7 and 0 of the user register set the conversion resolution as follows:
+ *  ___________________________________________
+ * |              |          |   Resolution    |
+ * |______________|__________|_________________|
+ * |     Enum     |  D[7,0]  |  RH   |  Temp   |
+ * |______________|__________|_______|_________|
+ * |  RES_H12T14  |   0 0    |  12b  |   14b   |
+ * |  RES_H8T12   |   0 1    |   8b  |   12b   |
+ * |  RES_H10T13  |   1 0    |  10b  |   13b   |
+ * |  RES_H11T11  |   1 1    |  11b  |   11b   |
+ * |______________|__________|_______|_________|
+ */
+typedef enum {
+	RES_H12T14,		/**< default **/
+	RES_H8T12,
+	RES_H10T13,
+	RES_H11T11
+} Si_ResolutionTypeDef;
+
+/*!
  * @typedef Si7021 refers to struct __Si7021 containing sensor properties
  */
 typedef struct __Si7021 {
 	_Bool heater;		/**< Built-in heater status -- 0:off, 1: on **/
 	I2C_HandleTypeDef _hi2c;
+	Si_ResolutionTypeDef _res;
 	Si_SensorTypeDef _model;
 	uint8_t _revision;
 	uint8_t  _i2caddr;
@@ -84,10 +108,12 @@ typedef struct __Si7021 {
 _Bool Si7021_Begin(Si7021_TypeDef *si7021);
 _Bool Si7021_HeaterOff(Si7021_TypeDef *si7021);
 _Bool Si7021_HeaterOn(Si7021_TypeDef *si7021, uint8_t level);
+_Bool Si7021_SetResolution(Si7021_TypeDef *si7021, Si_ResolutionTypeDef res);
 float Si7021_ReadHumidity(Si7021_TypeDef *si7021);
 float Si7021_ReadPrevTemperature(Si7021_TypeDef *si7021);
 float Si7021_ReadTemperature(Si7021_TypeDef *si7021);
 Si_SensorTypeDef Si7021_GetModel(Si7021_TypeDef *si7021);
+Si_ResolutionTypeDef Si7021_GetResolution(Si7021_TypeDef *si7021);
 uint8_t Si7021_GetRevision(Si7021_TypeDef *si7021);
 uint8_t Si7021_HeaterStatus(Si7021_TypeDef *si7021);
 void Si7021_Init(Si7021_TypeDef *si7021, I2C_HandleTypeDef *hi2c);
