@@ -21,7 +21,6 @@ const static uint32_t _TRANSACTION_TIMEOUT = 100; // Wire NAK/Busy timeout in ms
  * Static function prototypes
  */
 static uint8_t _readRegister8(Si7021_TypeDef *si7021, uint8_t reg);
-static uint16_t _readRegister16(Si7021_TypeDef *si7021, uint8_t reg);
 static void _writeRegister8(Si7021_TypeDef *si7021, uint8_t reg, uint8_t value);
 static void _readRevision(Si7021_TypeDef *si7021);
 void _readSerialNumber(Si7021_TypeDef *si7021);
@@ -48,27 +47,6 @@ static uint8_t _readRegister8(Si7021_TypeDef *si7021, uint8_t reg) {
 	}
 
 	return value[0];
-}
-
-/*!
- * @brief Reads 16 bits from the specified register
- * @param *si7021 Pointer to the handle of the target device
- * @param reg Register to be read
- * @return value Acquired data as uint16_t
- */
-static uint16_t _readRegister16(Si7021_TypeDef *si7021, uint8_t reg) {
-	uint8_t cmd[] = {reg};
-	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
-		Error_Handler(); // TODO: Handle gracefully
-	}
-
-	uint8_t ibuf[2];
-	if (HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, ibuf, 2, _TRANSACTION_TIMEOUT) != HAL_OK) {
-		Error_Handler(); // TODO: Handle gracefully
-	}
-
-	uint16_t value = ibuf[0] << 8 | ibuf[1];
-	return value;
 }
 
 /*!
