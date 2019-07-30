@@ -128,15 +128,6 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		/*
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-		while(!(UART4->ISR & UART_FLAG_TXE)) {}
-		UART4->TDR = 0x48;
-		while(!(UART4->ISR & UART_FLAG_TC)) {}
-		HAL_Delay(500);
-		 */
-
-
 		if(tick_500ms) {
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 

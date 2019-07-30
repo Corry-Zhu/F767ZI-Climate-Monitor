@@ -61,13 +61,13 @@ typedef enum {
 	SI_7020,
 	SI_7021,
 	SI_UNKNOWN,
-} si_sensorType;
+} Si_SensorTypeDef;
 
 typedef struct __Adafruit_Si7021 {
 	I2C_HandleTypeDef _hi2c;
 	uint32_t sernum_a; /**< Serialnum A */
 	uint32_t sernum_b; /**< Serialnum B */
-	si_sensorType _model;
+	Si_SensorTypeDef _model;
 	uint8_t _revision;
 	uint8_t  _i2caddr;
 } Adafruit_Si7021;
@@ -75,15 +75,11 @@ typedef struct __Adafruit_Si7021 {
 _Bool Adafruit_Si7021_Begin(Adafruit_Si7021 *si7021);
 float Adafruit_Si7021_ReadHumidity(Adafruit_Si7021 *si7021);
 float Adafruit_Si7021_ReadTemperature(Adafruit_Si7021 *si7021);
-si_sensorType getModel();
+Si_SensorTypeDef getModel();
 uint8_t getRevision();
 void Adafruit_Si7021_Init(Adafruit_Si7021 *si7021, I2C_HandleTypeDef *hi2c);
 void Adafruit_Si7021_ReadSerialNumber(Adafruit_Si7021 *si7021);
 void Adafruit_Si7021_Reset(Adafruit_Si7021 *si7021);
-
-//const static int _TRANSACTION_TIMEOUT = 100; // Wire NAK/Busy timeout in ms
-
-
 
 
 #endif /* SI7021_H_ */
