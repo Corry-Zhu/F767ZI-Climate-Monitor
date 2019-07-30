@@ -116,7 +116,7 @@ Si_SensorTypeDef Si7021_GetModel(Si7021_TypeDef *si7021);
 Si_ResolutionTypeDef Si7021_GetResolution(Si7021_TypeDef *si7021);
 uint8_t Si7021_GetRevision(Si7021_TypeDef *si7021);
 uint8_t Si7021_HeaterStatus(Si7021_TypeDef *si7021);
-void Si7021_Init(Si7021_TypeDef *si7021, I2C_HandleTypeDef *hi2c);
+void Si7021_Init(Si7021_TypeDef *si7021, I2C_HandleTypeDef *hi2c, uint8_t i2caddr);
 void Si7021_Reset(Si7021_TypeDef *si7021);
 
 

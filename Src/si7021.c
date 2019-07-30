@@ -368,14 +368,15 @@ uint8_t Si7021_HeaterStatus(Si7021_TypeDef *si7021) {
  * @brief Instantiates a new Si7021_TypeDef struct
  * @param *si7021 Pointer to the handle of the target device
  * @param *hi2c Pointer to handle of I2C channel
+ * @param i2caddr 7-bit I2C address in [6:0]
  */
-void Si7021_Init(Si7021_TypeDef *si7021, I2C_HandleTypeDef *hi2c) {
+void Si7021_Init(Si7021_TypeDef *si7021, I2C_HandleTypeDef *hi2c, uint8_t i2caddr) {
 	si7021->heater = 0;
 	si7021->_hi2c = *hi2c;
 	si7021->_res = RES_H12T14; /**< default **/
 	si7021->_model = SI_7021;
 	si7021->_revision = 0;
-	si7021->_i2caddr = SI7021_DEFAULT_ADDRESS << 1; /**< 7b address as MSB **/
+	si7021->_i2caddr = i2caddr << 1; /**< 7b address as MSB **/
 	si7021->sernum_a = 0;
 	si7021->sernum_b = 0;
 	// TODO: add address as param

@@ -120,7 +120,7 @@ int main(void)
 	MX_I2C1_Init();
 	MX_UART4_Init();
 	/* USER CODE BEGIN 2 */
-	Si7021_Init(&sensor, &hi2c1);
+	Si7021_Init(&sensor, &hi2c1, SI7021_DEFAULT_ADDRESS);
 	if (Si7021_Begin(&sensor) != 1) {
 		Error_Handler();
 	}
