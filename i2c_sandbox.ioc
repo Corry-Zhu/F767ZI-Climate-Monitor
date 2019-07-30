@@ -1,6 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
 File.Version=6
-I2C1.IPParameters=Timing
+I2C1.IPParameters=Timing,NoStretchMode
+I2C1.NoStretchMode=I2C_NOSTRETCH_DISABLE
 I2C1.Timing=0x20404768
 KeepUserPlacement=false
 Mcu.Family=STM32F7
@@ -160,6 +161,8 @@ RCC.VCOI2SOutputFreq_Value=384000000
 RCC.VCOInputFreq_Value=2000000
 RCC.VCOOutputFreq_Value=432000000
 RCC.VCOSAIOutputFreq_Value=384000000
+UART4.BaudRate=9600
+UART4.IPParameters=BaudRate
 VP_SYS_VS_Systick.Mode=SysTick
 VP_SYS_VS_Systick.Signal=SYS_VS_Systick
 board=custom
