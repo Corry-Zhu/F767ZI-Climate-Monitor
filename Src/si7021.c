@@ -12,7 +12,7 @@ const static uint32_t _TRANSACTION_TIMEOUT = 100; // Wire NAK/Busy timeout in ms
 
 static uint8_t _readRegister8(Adafruit_Si7021 *si7021, uint8_t reg);
 static uint16_t _readRegister16(Adafruit_Si7021 *si7021, uint8_t reg);
-static void _writeRegister8(uint8_t reg, uint8_t value);
+static void _writeRegister8(Adafruit_Si7021 *si7021, uint8_t reg, uint8_t value);
 static void _readRevision();
 
 static uint8_t _readRegister8(Adafruit_Si7021 *si7021, uint8_t reg) {
@@ -44,8 +44,16 @@ static uint16_t _readRegister16(Adafruit_Si7021 *si7021, uint8_t reg) {
 	return value;
 }
 
-static void _writeRegister8(uint8_t reg, uint8_t value) {
-	return;
+static void _writeRegister8(Adafruit_Si7021 *si7021, uint8_t reg, uint8_t value) {
+	uint8_t cmd[] = {reg};
+	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
+		Error_Handler(); // TODO: Handle gracefully
+	}
+
+	cmd[0] = value;
+	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
+		Error_Handler(); // TODO: Handle gracefully
+	}
 }
 
 static void _readRevision(Adafruit_Si7021 *si7021) {
@@ -102,19 +110,19 @@ _Bool Adafruit_Si7021_Begin(Adafruit_Si7021 *si7021) {
 }
 
 /*!
- *  @brief  Reads the humidity value from Si7021 (No Master hold)
+ *  @brief  Reads the humidity value from Si7021 (Master hold)
  *  @return Returns humidity as float value or NAN when there is error timeout
  */
 float Adafruit_Si7021_ReadHumidity(Adafruit_Si7021 *si7021) {
 	uint8_t cmd[] = {SI7021_MEASRH_HOLD_CMD};
 	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
-		return NAN; // TODO: Handle gracefully, possibly with NAN or similar
+		return NAN;
 	}
 
 	uint8_t resp[3];
 	HAL_StatusTypeDef rxStatus = HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, resp, 3, _TRANSACTION_TIMEOUT);
 	if(rxStatus != HAL_OK) {
-		return NAN; // TODO: Handle gracefully
+		return NAN;
 	}
 	uint16_t hum = resp[0] << 8 | resp[1];
 	// uint8_t chxsum = resp[2];
@@ -128,22 +136,46 @@ float Adafruit_Si7021_ReadHumidity(Adafruit_Si7021 *si7021) {
 }
 
 /*!
- *  @brief  Reads the temperature value from Si7021 (No Master hold)
+ *  @brief  Reads the temperature value from Si7021 (Master hold)
  *  @return Returns temperature as float value or NAN when there is error timeout
  */
 float Adafruit_Si7021_ReadTemperature(Adafruit_Si7021 *si7021) {
 	uint8_t cmd[] = {SI7021_MEASTEMP_HOLD_CMD};
 	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
-		return NAN; // TODO: Handle gracefully, possibly with NAN or similar
+		return NAN;
 	}
 
 	uint8_t resp[3];
 	HAL_StatusTypeDef rxStatus = HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, resp, 3, _TRANSACTION_TIMEOUT);
 	if(rxStatus != HAL_OK) {
-		return NAN; // TODO: Handle gracefully
+		return NAN;
 	}
 	uint16_t temp = resp[0] << 8 | resp[1];
 	// uint8_t chxsum = resp[2];
+
+	float temperature = temp;
+	temperature *= 175.72;
+	temperature /= 65536;
+	temperature -= 46.85;
+	return temperature;
+}
+
+/*!
+ *  @brief  Provides access to temperature value from previous humidity conversion
+ *  @return Returns temperature as float value or NAN when there is error timeout
+ */
+float Adafruit_Si7021_ReadPrevTemperature(Adafruit_Si7021 *si7021) {
+	uint8_t cmd[] = {SI7021_READPREVTEMP_CMD};
+	if (HAL_I2C_Master_Transmit(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, cmd, 1, _TRANSACTION_TIMEOUT) != HAL_OK) {
+		return NAN;
+	}
+
+	uint8_t resp[2];
+	HAL_StatusTypeDef rxStatus = HAL_I2C_Master_Receive(&(si7021->_hi2c), (uint16_t)si7021->_i2caddr, resp, 2, _TRANSACTION_TIMEOUT);
+	if(rxStatus != HAL_OK) {
+		return NAN;
+	}
+	uint16_t temp = resp[0] << 8 | resp[1];
 
 	float temperature = temp;
 	temperature *= 175.72;

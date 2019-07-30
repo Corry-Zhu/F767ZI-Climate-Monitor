@@ -132,18 +132,18 @@ int main(void)
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 
 			float hum = Adafruit_Si7021_ReadHumidity(&sensor);
-			float temp = Adafruit_Si7021_ReadTemperature(&sensor);
+			float temp = Adafruit_Si7021_ReadPrevTemperature(&sensor);
 
 			sprintf((char *)obufH, "Humidity: %.1f%%\r\n", hum);
 			if (HAL_UART_Transmit(&huart4, obufH, (uint16_t)sizeof(obufH), HAL_MAX_DELAY) != HAL_OK) {
 				Error_Handler();
 			}
 
-
-			sprintf((char *)obufT, "Temperature: %.1f C\r\n\n", temp);
+			sprintf((char *)obufT, "PrevTemperature: %.1f C\r\n", temp);
 			if (HAL_UART_Transmit(&huart4, obufT, (uint16_t)sizeof(obufT), HAL_MAX_DELAY) != HAL_OK) {
 				Error_Handler();
 			}
+
 			tick_500ms = 0;
 		}
 
