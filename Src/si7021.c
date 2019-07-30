@@ -141,6 +141,10 @@ void _readSerialNumber(Si7021_TypeDef *si7021) {
 }
 
 /*!
+ * Instance function definitions
+ */
+
+/*!
  *  @brief Sets up the HW by reseting It, reading serial number and reading revision
  *  @param *si7021 Pointer to the handle of the target device
  *  @return Returns true if set up is successful
