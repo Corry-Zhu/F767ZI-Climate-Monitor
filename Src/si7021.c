@@ -109,6 +109,23 @@ _Bool Adafruit_Si7021_Begin(Adafruit_Si7021 *si7021) {
 	return 1;
 }
 
+_Bool AdafruitSi7021_HeaterOn(Adafruit_Si7021 *si7021, uint8_t level) {
+	uint8_t usr_val = _readRegister8(si7021, SI7021_READRHT_REG_CMD);
+	usr_val |= SI7021_HTRE_MASK;
+
+	_writeRegister8(si7021, SI7021_WRITERHT_REG_CMD, usr_val);
+	if (_readRegister8(si7021, SI7021_READRHT_REG_CMD) != usr_val) {
+		return 0;
+	}
+	level = level & SI7021_HEATLVL_MASK; /** [7:4] are reserved bits in heater register **/
+	_writeRegister8(si7021, SI7021_WRITEHEATER_REG_CMD, level);
+	if (_readRegister8(si7021, SI7021_READHEATER_REG_CMD) != level) {
+		return 0;
+	}
+
+	return 1;
+}
+
 /*!
  *  @brief  Reads the humidity value from Si7021 (Master hold)
  *  @return Returns humidity as float value or NAN when there is error timeout
